@@ -1,21 +1,44 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { PlusCircleIcon } from '@heroicons/react/24/solid'
+import { useDrop } from 'react-dnd';
+
 import TaskCard from '../TaskCard';
 
-const ColumnTask: React.FC = () => {
+const ItemType = 'CARD';
+
+interface ColumnTaskProps {
+    items: {title:string, id: string}[],
+    title: string;
+    onDrop: (item: { id: string }) => void;
+    moveCard: (dragIndex: number, hoverIndex: number, columnId: string) => void;
+
+
+}
+
+const ColumnTask: React.FC<ColumnTaskProps> = ({ title, items = [], onDrop, moveCard }) => {
+    const [ {  isOverCurrent } , drop] = useDrop({
+        accept: ItemType,
+        drop: (item) => {
+          onDrop(item);
+        },
+        collect: (monitor) => ({
+            isOverCurrent: monitor.isOver(),
+        }),
+       
+      });
+    
   return (
-    <div className='w-full h-svh'>
+    <div ref={drop as unknown as React.LegacyRef<HTMLDivElement>} className={`'w-full h-svh' ${isOverCurrent && 'shadow-md'}`}>
       <input
         className='border-b-2 border-slate-700 w-full focus:outline-0 placeholder:text-slate-700 bg-transparent font-bold'
-        placeholder='New Stage'
+        value={title}
       />
+
+        {
+            items.map( ({title, id}, index) => (<TaskCard title={title} id={id} index={index} />))
+        }
       
-        <TaskCard title={"test card 1"}  />
-
-        <TaskCard title={"test card 2"}  />
-
-
-        <TaskCard title={"test card 3"}  />
+        
 
 
       <button className='btn-add w-full h-20 mt-4 flex flex-col justify-center items-center'>
