@@ -40,7 +40,6 @@ class ColumnType(ObjectType):
         return id
 
     def resolve_tasks(self, info):
-        print(list(Task.scan(Task.SK.startswith("TASK#"))))
         return list(Task.query(self.SK, Task.SK.startswith("TASK#")))
 
 
@@ -59,9 +58,9 @@ class ProjectType(ObjectType):
         return id
 
     def resolve_columns(self, info):
-        
-        return list(Column.query(self.PK, Column.SK.startswith("COLUMN#")))
-
+        columns = list(Column.query(self.PK, Column.SK.startswith("COLUMN#")))
+        sorted_columns = sorted(columns, key=lambda x: x.order)
+        return sorted_columns
 
 
 class Query(ObjectType):
@@ -73,6 +72,7 @@ class Query(ObjectType):
         return list(projects)
 
     def resolve_project(self,info, id):
+        print(id)
         project = Project.get(f'PROJECT#{id}', f'METADATA#{id}')
         return project
 
@@ -159,14 +159,112 @@ class CreateColumn(graphene.Mutation):
         return CreateColumn(column=column)
     
 
+class UpdateColumn(graphene.Mutation):
+    class Arguments:
+        id = String(required=True)
+        project_id = String(required=True)
+        name = String()
+        order = Int()
+
+    column = Field(lambda: ColumnType)
+
+    def mutate(self, info, id, project_id, name=None, order=None):
+        try:
+            column = Column.get(f"PROJECT#{project_id}", f"COLUMN#{id}")
+            actions = []
+            if name:
+                actions.append(Column.name.set(name))
+            if order is not None:
+                actions.append(Column.order.set(order))
+            
+            if actions:
+                column.update(actions=actions)
+            
+            return UpdateColumn(column=column)
+        except Column.DoesNotExist:
+            raise Exception(f"Column {id} does not exist.")
+
+class DeleteColumn(graphene.Mutation):
+    class Arguments:
+        id = String(required=True)
+        project_id = String(required=True)
+
+    success = Boolean()
+    message = String()
+
+    def mutate(self, info, id, project_id):
+        try:
+            column = Column.get(f"PROJECT#{project_id}", f"COLUMN#{id}")
+            tasks = Task.query(f"COLUMN#{id}", Task.SK.startswith("TASK#"))
+            for task in tasks:
+                task.delete()
+            column.delete()
+            return DeleteColumn(success=True, message=f"Column {id} deleted successfully.")
+        except Column.DoesNotExist:
+            return DeleteColumn(success=False, message=f"Column {id} does not exist.")
+class UpdateTask(graphene.Mutation):
+    class Arguments:
+        id = String(required=True)
+        column_id = String(required=True)
+        title = String()
+        description = String()
+        priority = PrioritiesEnum()
+        start_date = DateTime()
+        end_date = DateTime()
+        tags = List(String)
+
+    task = Field(lambda: TaskType)
+
+    def mutate(self, info, id, column_id, title=None, description=None, priority="LOW", start_date=None, end_date=None, tags=None):
+        try:
+            task = Task.get(f"COLUMN#{column_id}", f"TASK#{id}")
+            actions = []
+            if title:
+                actions.append(Task.title.set(title))
+            if description:
+                actions.append(Task.description.set(description))
+            if priority:
+                actions.append(Task.priority.set(priority))
+            if start_date:
+                actions.append(Task.start_date.set(start_date))
+            if end_date:
+                actions.append(Task.end_date.set(end_date))
+            if tags is not None:
+                actions.append(Task.tags.set(tags))
+            
+            if actions:
+                task.update(actions=actions)
+            
+            return UpdateTask(task=task)
+        except Task.DoesNotExist:
+            raise Exception(f"Task {id} does not exist.")
+        except UpdateError as e:
+            raise Exception(f"Error updating task: {e}")
+
+class DeleteTask(graphene.Mutation):
+    class Arguments:
+        id = String(required=True)
+        column_id = String(required=True)
+
+    success = Boolean()
+    message = String()
+
+    def mutate(self, info, id, column_id):
+        try:
+            task = Task.get(f"COLUMN#{column_id}", f"TASK#{id}")
+            task.delete()
+            return DeleteTask(success=True, message=f"Task {id} deleted successfully.")
+        except Task.DoesNotExist:
+            return DeleteTask(success=False, message=f"Task {id} does not exist.")            
+
 class CreateTask(graphene.Mutation):
     class Arguments:
         column_id = String(required=True)
         title = String(required=True)
         description = String()
         priority = PrioritiesEnum()
-        start_date = DateTime()
-        end_date = DateTime()
+        start_date = String()
+        end_date = String()
         tags = List(String)
     
     task = Field(lambda: TaskType)
@@ -178,7 +276,7 @@ class CreateTask(graphene.Mutation):
                 SK=f"TASK#{id}",
                 title=title,
                 description=description,
-                priority=priority,
+                priority=priority.value,
                 start_date=start_date,
                 end_date=end_date,
                 tags=tags
@@ -194,6 +292,10 @@ class Mutation(ObjectType):
     create_task = CreateTask.Field()
     update_project = UpdateProject.Field()
     delete_project = DeleteProject.Field()
+    update_column = UpdateColumn.Field()
+    delete_column = DeleteColumn.Field()
+    update_task = UpdateTask.Field()
+    delete_task = DeleteTask.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation'
 import { XCircleIcon } from '@heroicons/react/24/outline'
 import Modal from '../commons/Modal';
 
@@ -16,6 +17,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ id,title: initialTitle, descr
   const [isDescriptionEdit, setIsDescriptionEdit] = useState<boolean>(false);
   const [title, setTitle] = useState<string | undefined>(initialTitle);
   const [description, setDescription] = useState<string | undefined>(initialDescription);
+  const router = useRouter()
 
   const onEditTitle = () => {
     setIsTitleEdit(true);
@@ -44,7 +46,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ id,title: initialTitle, descr
 
   return (
    <>
-    <div key={id} className="bg-white rounded-2xl max-w-sm max-h-56 overflow-hidden shadow hover:shadow-lg hover:cursor-pointer">
+    <div key={id}  className="bg-white flex flex-col rounded-2xl max-w-sm max-h-56 overflow-hidden shadow hover:shadow-lg hover:cursor-pointer">
       <div className="w-full p-6 bg-pinky">
         {isTitleEdit ? (
           <input
@@ -85,6 +87,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ id,title: initialTitle, descr
             {description}
           </p>
         )}
+      </div>
+      <div className='my-auto'>
+        <button className='w-full p-4 text-rose-500' onClick={() => router.push(`/project/${id}`)}>View my project</button>
       </div>
     </div>
 

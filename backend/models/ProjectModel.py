@@ -53,5 +53,5 @@ class Task(BaseModel):
     description = UnicodeAttribute(null=True)
     priority = UnicodeAttribute(null=True)
     start_date = UnicodeAttribute(null=True)
-    end_date = UTCDateTimeAttribute(null=True)
+    end_date = UnicodeAttribute(null=True)
     tags = ListAttribute(of=UnicodeAttribute, default=tuple())

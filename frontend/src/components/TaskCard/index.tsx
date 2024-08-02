@@ -27,6 +27,7 @@ const TaskCard: React.FC<CardTaskProps> = ({ id,title, index,onChange }) => {
         type='text'
         value={title}
         onChange={onChange}
+        readOnly
         className='w-full bg-transparent focus:outline-none font-bold text-lg'
       />
     </div>
