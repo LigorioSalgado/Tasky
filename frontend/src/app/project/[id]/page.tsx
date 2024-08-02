@@ -1,7 +1,8 @@
+import React from 'react';
 import { ArrowLeftIcon, } from '@heroicons/react/24/solid'
 import  { getClient } from '@/lib/client'
 import { PROJECT_GET } from '@/queries';
-import { ProjectType } from '@/types'
+import { ColumnType, ProjectType } from '@/types'
 import Tasks from '@/components/Tasks';
 
 
@@ -10,7 +11,8 @@ interface ProjectResponse {
 }
 
 
-const ProjectPage: React.FC = async({ params }) => {
+
+const ProjectPage: React.FC<{params:{id: string}}> = async({ params }) => {
 
   const client = getClient()
 
@@ -33,7 +35,7 @@ const ProjectPage: React.FC = async({ params }) => {
       <div className='p-7 mt-5'>
           <h2 className='font-bold text-3xl'>{data.project.name}</h2>
       </div>
-      <Tasks initColumns={data?.project?.columns || []} projectId={params.id} />
+      <Tasks initColumns={data?.project?.columns as ColumnType[]} projectId={params.id} />
       </>
 
     

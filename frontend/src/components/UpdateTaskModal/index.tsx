@@ -1,29 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../commons/Modal';
-
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  endDate?: string;
-  priority?: string;
-  startDate?: string;
-  tags?: string[];
-}
+import { Priorities, TaskType } from '@/types';
+import { stringToPriority } from '@/utils'
 
 interface UpdateTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (task: Task) => void;
-  onDelete: (task:Task) => void;
-  task: Task;
+  onSave: (task: TaskType) => void;
+  onDelete: (task:TaskType) => void;
+  task: TaskType;
 }
 
 const UpdateTaskModal: React.FC<UpdateTaskModalProps> = ({ isOpen, onClose, onSave, onDelete, task }) => {
-  console.log(task)  
   const [title, setTitle] = useState<string>(task.title);
   const [description, setDescription] = useState<string>(task.description || '');
-  const [priority, setPriority] = useState<string>(task.priority || 'LOW');
+  const [priority, setPriority] = useState<string>(task.priority || 'LOW' as Priorities);
   const [startDate, setStartDate] = useState<string>(task.startDate || '');
   const [endDate, setEndDate] = useState<string>(task.endDate || '');
   const [tags, setTags] = useState<string[]>(task.tags || []);
@@ -31,7 +22,7 @@ const UpdateTaskModal: React.FC<UpdateTaskModalProps> = ({ isOpen, onClose, onSa
   useEffect(() => {
     setTitle(task.title);
     setDescription(task.description || '');
-    setPriority(task.priority || 'LOW');
+    setPriority(task.priority || 'LOW' as Priorities);
     setStartDate(task.startDate || '');
     setEndDate(task.endDate || '');
     setTags(task.tags || []);
@@ -39,7 +30,7 @@ const UpdateTaskModal: React.FC<UpdateTaskModalProps> = ({ isOpen, onClose, onSa
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSave({ ...task, title, description, priority, startDate, endDate, tags });
+    onSave({ ...task, title, description,  priority: stringToPriority(priority), startDate, endDate, tags });
     onClose();
   };
 

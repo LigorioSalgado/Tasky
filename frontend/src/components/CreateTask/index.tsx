@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import Modal from '../commons/Modal';
+import { Priorities } from '@/types';
+import { stringToPriority } from '@/utils'
 
 interface Task {
     title: string;
     description?: string;
     endDate?: string;
-    priority?: string;
+    priority?: Priorities;
     startDate?: string;
     tags?: string[];
   }
@@ -26,7 +28,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClose, onSa
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSave({title, description, priority, startDate, endDate, tags});
+    onSave({title, description, priority: stringToPriority(priority) , startDate, endDate, tags});
     onClose();
   };
 

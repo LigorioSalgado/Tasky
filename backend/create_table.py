@@ -2,6 +2,7 @@ from models.ProjectModel import Project, Column, Task
 
 
 def create_tables():
+    print(os.getenv('AWS_ACCESS_KEY_ID'))
     if not Project.exists():
         Project.create_table(
             read_capacity_units=1, 

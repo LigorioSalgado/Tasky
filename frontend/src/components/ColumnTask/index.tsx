@@ -8,9 +8,9 @@ const ItemType = 'CARD';
 
 interface ColumnTaskProps {
     columnId: string
-    items: {title:string, id: string}[],
+    items: TaskType[],
     title: string;
-    onDrop: (item: { id: string }) => void;
+    onDrop: (item?: { id?: string }) => void;
     onUpdate: (title:string) => void;
     onAddTask: (columnId: string) => void;
     onDelete: () => void;

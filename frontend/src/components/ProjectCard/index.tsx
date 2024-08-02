@@ -31,7 +31,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ id,title: initialTitle, descr
     setTitle(e.target.value);
   };
 
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDescription(e.target.value);
   };
 
@@ -75,7 +75,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ id,title: initialTitle, descr
       <div className="w-full px-6">
         {isDescriptionEdit ? (
           <textarea
-            type="text"
             className="bg-transparent w-full border-b-2 border-slate-700 focus:outline-none"
             value={description}
             onChange={handleDescriptionChange}

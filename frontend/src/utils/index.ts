@@ -1,3 +1,4 @@
+import { Priorities } from "@/types";
 export const hexToRgb = (hex: string) => {
     const bigint = parseInt(hex.slice(1), 16);
     const r = (bigint >> 16) & 255;
@@ -22,5 +23,20 @@ export const hexToRgb = (hex: string) => {
 
   export const getContrastColor = (color: string) => {
     return isColorDark(color) ? '#ffffff' : '#000000';
+  };
+
+  export const stringToPriority = (priority: string): Priorities | null => {
+    switch (priority) {
+      case 'LOW':
+        return Priorities.Low;
+      case 'MEDIUM':
+        return Priorities.Medium;
+      case 'HIGH':
+        return Priorities.High;
+      case 'URGENT':
+        return Priorities.Urgent;
+      default:
+        return null; // O manejar el caso de error apropiadamente
+    }
   };
   

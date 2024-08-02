@@ -1,12 +1,11 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'  // Usage: App router
 import { ColumnType, TaskType } from '@/types';
 import { useProject } from '@/hooks/useProject';
 import Modal from '../commons/Modal';
 import CreateColumnModal from '../CreateColumn';
 import ColumnTask from '@/components/ColumnTask';
-import { PlusCircleIcon, AdjustmentsVerticalIcon } from '@heroicons/react/24/solid';
+import { PlusCircleIcon } from '@heroicons/react/24/solid';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import CreateTaskModal from '../CreateTask';
@@ -18,7 +17,6 @@ interface TaskProps {
 }
 
 const Tasks: React.FC<TaskProps> = ({ initColumns, projectId }) => {
-  const router = useRouter()
 
   const [columns, setColumns] = useState<ColumnType[]>(initColumns || []);
   const [filteredColumns, setFilteredColumns] = useState<ColumnType[]>(columns);
@@ -64,7 +62,7 @@ const Tasks: React.FC<TaskProps> = ({ initColumns, projectId }) => {
     setFilteredColumns(filtered);
   };
 
-  const handleDrop = (columnId: string, item: { id: string }) => {
+  const handleDrop = (columnId: string, item: TaskType) => {
     const cardId = item.id;
     const sourceColumn = columns.find((col) => col.tasks.some((task) => task.id === cardId));
 

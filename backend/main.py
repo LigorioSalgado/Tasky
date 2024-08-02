@@ -18,6 +18,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+
+
+
+
 app.add_route("/graphql", GraphQLApp(schema=schema, playground=True))
 
 if __name__ == "__main__":

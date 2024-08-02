@@ -1,7 +1,16 @@
+import os
 from datetime import datetime
 from pynamodb.models import Model
 from pynamodb.attributes import UnicodeAttribute, ListAttribute, NumberAttribute, UTCDateTimeAttribute
+from pynamodb.connection import Connection
 
+
+connection = Connection(
+    region=os.getenv('AWS_REGION', 'us-west-2'),
+    host=os.getenv('DYNAMODB_HOST', 'http://localhost:8000'),
+    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+)
 
 class BaseModel(Model):
     create_date = UTCDateTimeAttribute(null=True)
@@ -20,8 +29,8 @@ class BaseModel(Model):
 class Project(BaseModel):
     class Meta:
         table_name = "Projects"
-        region = 'us-west-2'  
-        host = "http://localhost:8000"  
+        region = os.getenv('AWS_REGION', 'us-west-2')
+        host = os.getenv('DYNAMODB_HOST', 'http://localhost:8000')
 
     PK = UnicodeAttribute(hash_key=True)
     SK = UnicodeAttribute(range_key=True)
@@ -32,8 +41,9 @@ class Project(BaseModel):
 class Column(BaseModel):
     class Meta:
         table_name = "Projects"
-        region = 'us-west-2'
-        host = "http://localhost:8000"
+        region = os.getenv('AWS_REGION', 'us-west-2')
+        host = os.getenv('DYNAMODB_HOST', 'http://localhost:8000')
+
 
     PK = UnicodeAttribute(hash_key=True)
     SK = UnicodeAttribute(range_key=True)
@@ -44,8 +54,9 @@ class Column(BaseModel):
 class Task(BaseModel):
     class Meta:
         table_name = "Projects"
-        region = 'us-west-2'
-        host = "http://localhost:8000"
+        region = os.getenv('AWS_REGION', 'us-west-2')
+        host = os.getenv('DYNAMODB_HOST', 'http://localhost:8000')
+
 
     PK = UnicodeAttribute(hash_key=True)
     SK = UnicodeAttribute(range_key=True)

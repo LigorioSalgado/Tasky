@@ -34,8 +34,8 @@ const Projects: React.FC<CreateProjectProps> = ({initProjects}) => {
   
 
     const renderProjects =  () => (
-        <div className="w-full h-1/2 grid lg:grid-cols-3  sm:grid-cols-2 gap-8 mt-40">
-            {projects.map( project => <ProjectCard  id={project.id}  
+        <div  className="w-full h-1/2 grid lg:grid-cols-3  sm:grid-cols-2 gap-8 mt-40">
+            {projects.map( project => <ProjectCard  key={project.id} id={project.id}  
               title={project.name as string} 
               description={project.description as string} 
               onUpdate={handleUpdateProject} 

@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from '@apollo/client';
+import { Priorities } from '@/types';
 import { PROJECT_GET, CREATE_COLUMN, UPDATE_COLUMN, DELETE_COLUMN, CREATE_TASK, UPDATE_TASK, DELETE_TASK, MOVE_TASK } from '@/queries';
 import { ProjectType, MutationCreateColumnArgs, MutationUpdateColumnArgs, MutationDeleteColumnArgs, MutationCreateTaskArgs, MutationUpdateTaskArgs, MutationDeleteTaskArgs, ColumnType, TaskType, MutationMoveTaskArgs } from '@/types';
 
@@ -25,17 +26,17 @@ interface CreateTaskParams {
   title: string;
   description?: string;
   endDate?: string;
-  priority?: string;
+  priority?: Priorities;
   startDate?: string;
   tags?: string[];
 }
 interface UpdateTaskParams {
-  id: string;
-  columnId: string;
+  id?: string;
+  columnId?: string;
   title?: string;
   description?: string;
   endDate?: string;
-  priority?: string;
+  priority?: Priorities;
   startDate?: string;
   tags?: string[];
 }

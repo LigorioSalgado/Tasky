@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+  dynamodb:
+    image: amazon/dynamodb-local
+    container_name: dynamodb
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - dynamodb_data:/home/dynamodblocal/data
+  awscli:
+    image: amazon/aws-cli:latest
+    stdin_open: true
+    tty: true
+    entrypoint: tail -f /dev/null
+    env_file:
+      - .env
+
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    env_file:
+      - .env
+    depends_on:
+      - dynamodb
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+
+volumes:
+  dynamodb_data:
