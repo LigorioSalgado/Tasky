@@ -61,6 +61,13 @@ export type DeleteTask = {
   success?: Maybe<Scalars['Boolean']['output']>;
 };
 
+export type MoveTask = {
+  __typename?: 'MoveTask';
+  message?: Maybe<Scalars['String']['output']>;
+  success?: Maybe<Scalars['Boolean']['output']>;
+  task?: Maybe<TaskType>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   createColumn?: Maybe<CreateColumn>;
@@ -69,6 +76,7 @@ export type Mutation = {
   deleteColumn?: Maybe<DeleteColumn>;
   deleteProject?: Maybe<DeleteProject>;
   deleteTask?: Maybe<DeleteTask>;
+  moveTask?: Maybe<MoveTask>;
   updateColumn?: Maybe<UpdateColumn>;
   updateProject?: Maybe<UpdateProject>;
   updateTask?: Maybe<UpdateTask>;
@@ -91,9 +99,9 @@ export type MutationCreateProjectArgs = {
 export type MutationCreateTaskArgs = {
   columnId: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
-  endDate?: InputMaybe<Scalars['DateTime']['input']>;
+  endDate?: InputMaybe<Scalars['String']['input']>;
   priority?: InputMaybe<Priorities>;
-  startDate?: InputMaybe<Scalars['DateTime']['input']>;
+  startDate?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   title: Scalars['String']['input'];
 };
@@ -113,6 +121,13 @@ export type MutationDeleteProjectArgs = {
 export type MutationDeleteTaskArgs = {
   columnId: Scalars['String']['input'];
   id: Scalars['String']['input'];
+};
+
+
+export type MutationMoveTaskArgs = {
+  sourceColumnId: Scalars['String']['input'];
+  targetColumnId: Scalars['String']['input'];
+  taskId: Scalars['String']['input'];
 };
 
 
@@ -281,6 +296,7 @@ export type ResolversTypes = {
   DeleteProject: ResolverTypeWrapper<DeleteProject>;
   DeleteTask: ResolverTypeWrapper<DeleteTask>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  MoveTask: ResolverTypeWrapper<MoveTask>;
   Mutation: ResolverTypeWrapper<{}>;
   PRIORITIES: Priorities;
   ProjectType: ResolverTypeWrapper<ProjectType>;
@@ -304,6 +320,7 @@ export type ResolversParentTypes = {
   DeleteProject: DeleteProject;
   DeleteTask: DeleteTask;
   Int: Scalars['Int']['output'];
+  MoveTask: MoveTask;
   Mutation: {};
   ProjectType: ProjectType;
   Query: {};
@@ -362,6 +379,13 @@ export type DeleteTaskResolvers<ContextType = any, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type MoveTaskResolvers<ContextType = any, ParentType extends ResolversParentTypes['MoveTask'] = ResolversParentTypes['MoveTask']> = {
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  task?: Resolver<Maybe<ResolversTypes['TaskType']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   createColumn?: Resolver<Maybe<ResolversTypes['CreateColumn']>, ParentType, ContextType, RequireFields<MutationCreateColumnArgs, 'name' | 'order' | 'projectId'>>;
   createProject?: Resolver<Maybe<ResolversTypes['CreateProject']>, ParentType, ContextType, Partial<MutationCreateProjectArgs>>;
@@ -369,6 +393,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   deleteColumn?: Resolver<Maybe<ResolversTypes['DeleteColumn']>, ParentType, ContextType, RequireFields<MutationDeleteColumnArgs, 'id' | 'projectId'>>;
   deleteProject?: Resolver<Maybe<ResolversTypes['DeleteProject']>, ParentType, ContextType, RequireFields<MutationDeleteProjectArgs, 'id'>>;
   deleteTask?: Resolver<Maybe<ResolversTypes['DeleteTask']>, ParentType, ContextType, RequireFields<MutationDeleteTaskArgs, 'columnId' | 'id'>>;
+  moveTask?: Resolver<Maybe<ResolversTypes['MoveTask']>, ParentType, ContextType, RequireFields<MutationMoveTaskArgs, 'sourceColumnId' | 'targetColumnId' | 'taskId'>>;
   updateColumn?: Resolver<Maybe<ResolversTypes['UpdateColumn']>, ParentType, ContextType, RequireFields<MutationUpdateColumnArgs, 'id' | 'projectId'>>;
   updateProject?: Resolver<Maybe<ResolversTypes['UpdateProject']>, ParentType, ContextType, Partial<MutationUpdateProjectArgs>>;
   updateTask?: Resolver<Maybe<ResolversTypes['UpdateTask']>, ParentType, ContextType, RequireFields<MutationUpdateTaskArgs, 'columnId' | 'id'>>;
@@ -427,6 +452,7 @@ export type Resolvers<ContextType = any> = {
   DeleteColumn?: DeleteColumnResolvers<ContextType>;
   DeleteProject?: DeleteProjectResolvers<ContextType>;
   DeleteTask?: DeleteTaskResolvers<ContextType>;
+  MoveTask?: MoveTaskResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   ProjectType?: ProjectTypeResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

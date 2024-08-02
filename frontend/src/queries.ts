@@ -54,8 +54,13 @@ export const PROJECT_GET = gql`
         name
         tasks{
           id
-          title
-          tags
+        columnId
+        title
+        priority
+        description
+        startDate
+        endDate
+        tags
         }
       }
     }
@@ -130,6 +135,20 @@ export const DELETE_TASK = gql`
     deleteTask(id: $id, columnId: $columnId) {
       success
       message
+    }
+  }
+`;
+
+
+export const MOVE_TASK = gql`
+  mutation MoveTask($taskId: String!, $sourceColumnId: String!, $targetColumnId: String!) {
+    moveTask(taskId: $taskId, sourceColumnId: $sourceColumnId, targetColumnId: $targetColumnId) {
+      success
+      message
+      task {
+        id
+        columnId
+      }
     }
   }
 `;

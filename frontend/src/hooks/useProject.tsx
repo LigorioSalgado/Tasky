@@ -1,10 +1,18 @@
 import { useMutation, useQuery } from '@apollo/client';
-import { PROJECT_GET, CREATE_COLUMN, UPDATE_COLUMN, DELETE_COLUMN, CREATE_TASK, UPDATE_TASK, DELETE_TASK } from '@/queries';
-import { ProjectType, MutationCreateColumnArgs, MutationUpdateColumnArgs, MutationDeleteColumnArgs, MutationCreateTaskArgs, MutationUpdateTaskArgs, MutationDeleteTaskArgs, ColumnType, TaskType } from '@/types';
+import { PROJECT_GET, CREATE_COLUMN, UPDATE_COLUMN, DELETE_COLUMN, CREATE_TASK, UPDATE_TASK, DELETE_TASK, MOVE_TASK } from '@/queries';
+import { ProjectType, MutationCreateColumnArgs, MutationUpdateColumnArgs, MutationDeleteColumnArgs, MutationCreateTaskArgs, MutationUpdateTaskArgs, MutationDeleteTaskArgs, ColumnType, TaskType, MutationMoveTaskArgs } from '@/types';
 
 interface ProjectResponse {
   project: ProjectType
 }
+interface MoveTaskResponse {
+  moveTask: {
+    success: boolean;
+    message: string;
+    task: TaskType;
+  };
+}
+
 
 interface CreateColumnResponse {
   createColumn: {
@@ -15,6 +23,16 @@ interface CreateColumnResponse {
 interface CreateTaskParams {
   columnId: string;
   title: string;
+  description?: string;
+  endDate?: string;
+  priority?: string;
+  startDate?: string;
+  tags?: string[];
+}
+interface UpdateTaskParams {
+  id: string;
+  columnId: string;
+  title?: string;
   description?: string;
   endDate?: string;
   priority?: string;
@@ -89,11 +107,17 @@ export const useProject = ({ id }: { id: string }) => {
     fetchPolicy: 'no-cache',
   });
 
+  const [moveTask, { loading: moveTaskLoading, error: moveTaskError }] = useMutation<MoveTaskResponse, MutationMoveTaskArgs>(MOVE_TASK, {
+    onCompleted: () => refetch(),
+    fetchPolicy: 'no-cache',
+  });
+
+
   const handleCreateColumn = async (name: string, order: number, projectId: string) => {
     await createColumn({ variables: { name, order, projectId } });
   };
 
-  const handleUpdateColumn = async (id: string, name?: string, order?: number, projectId?: string) => {
+  const handleUpdateColumn = async (id: string, projectId: string, name?: string, order?: number, ) => {
     await updateColumn({ variables: { id, name, order, projectId } });
   };
 
@@ -108,12 +132,16 @@ const handleCreateTask = async ({ columnId, title, description, endDate, priorit
   });
 };
 
-  const handleUpdateTask = async (id: string, columnId: string, title?: string, description?: string, endDate?: string, priority?: string, startDate?: string, tags?: string[]) => {
-    await updateTask({ variables: { id, columnId, title, description, endDate, priority, startDate, tags } });
-  };
+const handleUpdateTask = async ({ id, columnId, title, description, endDate, priority, startDate, tags }: UpdateTaskParams) => {
+  await updateTask({ variables: { id, columnId, title, description, endDate, priority, startDate, tags } });
+};
 
   const handleDeleteTask = async (id: string, columnId: string) => {
     await deleteTask({ variables: { id, columnId } });
+  };
+
+  const handleMoveTask = async ({ taskId, sourceColumnId, targetColumnId }: MutationMoveTaskArgs) => {
+    await moveTask({ variables: { taskId, sourceColumnId, targetColumnId } });
   };
 
   return {
@@ -132,11 +160,14 @@ const handleCreateTask = async ({ columnId, title, description, endDate, priorit
     updateTaskError,
     deleteTaskLoading,
     deleteTaskError,
+    moveTaskLoading,
+    moveTaskError,
     handleCreateColumn,
     handleUpdateColumn,
     handleDeleteColumn,
     handleCreateTask,
     handleUpdateTask,
     handleDeleteTask,
+    handleMoveTask
   };
 };

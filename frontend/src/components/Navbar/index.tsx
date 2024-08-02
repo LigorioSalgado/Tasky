@@ -9,12 +9,7 @@ const Navbar: React.FC = () => {
           <h2 className='text-3xl font-normal'>Tasky</h2>
         </div>
         <div className="space-x-4">
-          <button className="btn btn-primary">
-            Botón 1
-          </button>
-          <button className="btn btn-secondary">
-            Botón 2
-          </button>
+      
         </div>
       </div>
     </nav>

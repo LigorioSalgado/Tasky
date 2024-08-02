@@ -1,92 +1,149 @@
-'use client'
-import React, {useState, useEffect} from 'react';
-import { ColumnType } from'@/types'
+'use client';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation'  // Usage: App router
+import { ColumnType, TaskType } from '@/types';
 import { useProject } from '@/hooks/useProject';
+import Modal from '../commons/Modal';
 import CreateColumnModal from '../CreateColumn';
 import ColumnTask from '@/components/ColumnTask';
-import { PlusCircleIcon, AdjustmentsVerticalIcon} from '@heroicons/react/24/solid'
+import { PlusCircleIcon, AdjustmentsVerticalIcon } from '@heroicons/react/24/solid';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import CreateTaskModal from '../CreateTask';
+import UpdateTaskModal from '../UpdateTaskModal';
 
 interface TaskProps {
-  initColumns: ColumnType[] | undefined,
-  projectId: string
+  initColumns: ColumnType[] | undefined;
+  projectId: string;
 }
 
 const Tasks: React.FC<TaskProps> = ({ initColumns, projectId }) => {
-    const [columns, setColumns] = useState<any>(initColumns);
-    const [currentColumn, setCurrentColumn] = useState('')
-    const [showColumnModal, setColumnModal] = useState(false);
-    const [showTaskModal, setTaskModal] = useState(false);
+  const router = useRouter()
 
-    const {data, handleCreateColumn, handleCreateTask } = useProject({id:projectId})
+  const [columns, setColumns] = useState<ColumnType[]>(initColumns || []);
+  const [filteredColumns, setFilteredColumns] = useState<ColumnType[]>(columns);
+  const [currentColumn, setCurrentColumn] = useState<ColumnType>({} as ColumnType);
+  const [currentTask, setCurrentTask] = useState<TaskType>({} as TaskType);
+  const [showColumnModal, setColumnModal] = useState(false);
+  const [showDeleteColumnModal, setDeleteColumnModal] = useState(false);
+  const [showTaskModal, setTaskModal] = useState(false);
+  const [showEditTaskModal, setshowEditTaskModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterPriority, setFilterPriority] = useState('');
 
-    useEffect(() => {
-      if(data?.project.columns){
-        setColumns(data.project.columns)
-      }
-    }, [data])
+  const {
+    data,
+    handleCreateColumn,
+    handleCreateTask,
+    handleUpdateColumn,
+    handleDeleteColumn,
+    handleMoveTask,
+    handleUpdateTask,
+    handleDeleteTask
+  } = useProject({ id: projectId });
 
+  useEffect(() => {
+    if (data?.project.columns) {
+      setColumns(data.project.columns);
+    }
+  }, [data]);
 
-    const handleDrop = (columnId: string, item: { id: string }) => {
-        const cardId = item.id;
-        const sourceColumnId = Object.keys(columns).find((key) =>
-          columns[key].some((card) => card.id === cardId)
-        );
-    
-        if (!sourceColumnId || sourceColumnId === columnId) return;
-    
-        const sourceCards = columns[sourceColumnId].filter((card) => card.id !== cardId);
-        const targetCards = [...columns[columnId], columns[sourceColumnId].find((card) => card.id === cardId)];
-    
-        setColumns({
-          ...columns,
-          [sourceColumnId]: sourceCards,
-          [columnId]: targetCards,
-        });
-      };
-    
-      const moveCard = (dragIndex: number, hoverIndex: number, columnId: string) => {
-        const column = columns[columnId];
-        const dragCard = column[dragIndex];
-    
-        if (dragIndex !== hoverIndex) {
-          const newCards = [...column];
-          newCards.splice(dragIndex, 1);
-          newCards.splice(hoverIndex, 0, dragCard);
-    
-          setColumns({
-            ...columns,
-            [columnId]: newCards,
-          });
-        }
-      };
+  useEffect(() => {
+    filterTasks();
+  }, [searchTerm, filterPriority, columns]);
 
-      const addTask = (projectId) => {
-        setTaskModal(true)
-        setCurrentColumn(projectId)
-      }
-    
-    
+  const filterTasks = () => {
+    const filtered = columns.map((column) => ({
+      ...column,
+      tasks: column.tasks.filter((task) => {
+        const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesPriority = filterPriority ? task.priority === filterPriority : true;
+        return matchesSearch && matchesPriority;
+      }),
+    }));
+    setFilteredColumns(filtered);
+  };
+
+  const handleDrop = (columnId: string, item: { id: string }) => {
+    const cardId = item.id;
+    const sourceColumn = columns.find((col) => col.tasks.some((task) => task.id === cardId));
+
+    if (!sourceColumn || sourceColumn.id === columnId) return;
+
+    const sourceColumnIndex = columns.findIndex((col) => col.id === sourceColumn.id);
+    const targetColumnIndex = columns.findIndex((col) => col.id === columnId);
+
+    const card = sourceColumn.tasks.find((task) => task.id === cardId);
+    if (!card) return;
+
+    const newSourceTasks = sourceColumn.tasks.filter((task) => task.id !== cardId);
+    const newTargetTasks = [...columns[targetColumnIndex].tasks, card];
+
+    const newColumns = [...columns];
+    newColumns[sourceColumnIndex] = {
+      ...sourceColumn,
+      tasks: newSourceTasks,
+    };
+    newColumns[targetColumnIndex] = {
+      ...columns[targetColumnIndex],
+      tasks: newTargetTasks,
+    };
+
+    handleMoveTask({ taskId: item.id, sourceColumnId: sourceColumn.id, targetColumnId: columnId });
+    setColumns(newColumns);
+  };
+
+  const addTask = (column: ColumnType) => {
+    setTaskModal(true);
+    setCurrentColumn(column);
+  };
+
+  const deleteColumn = (column: ColumnType) => {
+    setCurrentColumn(column);
+    setDeleteColumnModal(true);
+  };
+
+  const closeDeleteColumnModal = () => setDeleteColumnModal(false);
+
+  const onEditTask = (task: TaskType) => {
+    setCurrentTask(task);
+    setshowEditTaskModal(true);
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
-    <div className='w-full p-4 bg-slate-50 border-gray-4 rounded-xl border mt-4 flex justify-between items-center'>
-          <input placeholder='Search...' className='rounded border border-gray-4 p-2 w-1/3' />
-          <button className='border-0 w-22 flex items-center'>
-            <AdjustmentsVerticalIcon className='size-6 text-slate-700' />
-            Filters
-          </button>
-     </div>
+      <div className="w-full p-4 bg-slate-50 border-gray-4 rounded-xl border mt-4 flex justify-between items-center">
+        <input
+          id="search"
+          placeholder="Search..."
+          className="rounded border border-gray-4 p-2 w-1/3"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <select
+          value={filterPriority}
+          onChange={(e) => setFilterPriority(e.target.value)}
+          className="rounded border border-gray-4 p-2 ml-4"
+        >
+          <option value="">All Priorities</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+          <option value="URGENT">Urgent</option>
+        </select>
+      </div>
       <div className="overflow-x-scroll h-screen flex gap-8 mt-10">
-        {columns.map((col) => (
+        {filteredColumns.map((col) => (
           <ColumnTask
             key={col.id}
             columnId={col.id}
             title={col.name}
             items={col.tasks}
-            onDrop={(item) => handleDrop(col, item)}
-            onAddTask={addTask}
+            onDrop={(item) => handleDrop(col.id, item)}
+            onAddTask={() => addTask(col)}
+            onUpdate={(title) => handleUpdateColumn(col.id, projectId, title)}
+            onDelete={() => deleteColumn(col)}
+            onEditTask={onEditTask}
           />
         ))}
 
@@ -100,19 +157,54 @@ const Tasks: React.FC<TaskProps> = ({ initColumns, projectId }) => {
           </button>
         </div>
       </div>
-   
-   <CreateColumnModal 
-      isOpen={showColumnModal}
 
-      onClose={() => setColumnModal(false)}
-      onSave={(title) => handleCreateColumn(title,columns.length,projectId)}
-    />
-    <CreateTaskModal 
-      isOpen={showTaskModal}
-      onClose={() => setTaskModal(false)}
-      onSave={(task) => handleCreateTask({columnId:currentColumn, ...task})}
-    />
-   </DndProvider>
+      <CreateColumnModal
+        isOpen={showColumnModal}
+        onClose={() => setColumnModal(false)}
+        onSave={(title) => handleCreateColumn(title, columns.length, projectId)}
+      />
+      <CreateTaskModal
+        isOpen={showTaskModal}
+        onClose={() => setTaskModal(false)}
+        onSave={(task) => handleCreateTask({ columnId: currentColumn.id, ...task })}
+      />
+      <UpdateTaskModal
+        onClose={() => setshowEditTaskModal(false)}
+        isOpen={showEditTaskModal}
+        task={currentTask}
+        onSave={(task) => {
+          setshowEditTaskModal(false);
+          handleUpdateTask(task);
+        }}
+        onDelete={(task) => {
+          setshowEditTaskModal(false);
+          handleDeleteTask(task.id, task.columnId);
+        }}
+      />
+      {showDeleteColumnModal && (
+        <Modal title="Delete Stage" onClose={closeDeleteColumnModal}>
+          <div className="w-full flex flex-col">
+            <h4>
+              Are you sure you want to delete <span className="font-bold">{currentColumn.name}</span> stage?
+            </h4>
+            <div className="w-full flex justify-end mt-4">
+              <button className="btn btn-secondary" onClick={closeDeleteColumnModal}>
+                Cancel
+              </button>
+              <button
+                className="ml-4 btn btn-primary"
+                onClick={() => {
+                  handleDeleteColumn(currentColumn.id, projectId);
+                  closeDeleteColumnModal();
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </DndProvider>
   );
 };
 

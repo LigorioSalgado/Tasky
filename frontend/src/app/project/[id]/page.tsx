@@ -5,11 +5,16 @@ import { ProjectType } from '@/types'
 import Tasks from '@/components/Tasks';
 
 
+interface ProjectResponse {
+  project: ProjectType
+}
+
 
 const ProjectPage: React.FC = async({ params }) => {
+
   const client = getClient()
 
-  const  { data } = await client.query<ProjectType>({
+  const  { data } = await client.query<ProjectResponse>({
     query: PROJECT_GET,
     variables:{
       id: params.id
@@ -20,13 +25,13 @@ const ProjectPage: React.FC = async({ params }) => {
   return (
       <>
       <div className='p-7 flex '>
-          <button>
+          <button >
             <ArrowLeftIcon className='size-6 text-slate-950 mr-5' />
           </button>
           <h2 className='text-xl'>My projects</h2>
       </div>
       <div className='p-7 mt-5'>
-          <h2 className='font-bold text-3xl'>My project</h2>
+          <h2 className='font-bold text-3xl'>{data.project.name}</h2>
       </div>
       <Tasks initColumns={data?.project?.columns || []} projectId={params.id} />
       </>

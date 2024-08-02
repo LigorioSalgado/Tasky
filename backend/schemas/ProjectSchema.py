@@ -16,8 +16,8 @@ class TaskType(ObjectType):
     title = String()
     priority = PrioritiesEnum()
     description = String()
-    start_date = DateTime()
-    end_date = DateTime()
+    start_date = String()
+    end_date = String()
     tags = List(String)
     create_date = DateTime()
     update_date = DateTime()
@@ -25,6 +25,13 @@ class TaskType(ObjectType):
     def resolve_id(self,info):
         _,id  = self.SK.split("#")
         return id
+    def resolve_priority(self, info):
+        print(self.priority)
+        return PRIORITIES(int(self.priority)).name
+    
+    def resolve_column_id(self,info):
+         _,id  = self.PK.split("#")
+         return id
 
 class ColumnType(ObjectType):
     id = String()
@@ -209,8 +216,8 @@ class UpdateTask(graphene.Mutation):
         title = String()
         description = String()
         priority = PrioritiesEnum()
-        start_date = DateTime()
-        end_date = DateTime()
+        start_date = String()
+        end_date = String()
         tags = List(String)
 
     task = Field(lambda: TaskType)
@@ -224,7 +231,7 @@ class UpdateTask(graphene.Mutation):
             if description:
                 actions.append(Task.description.set(description))
             if priority:
-                actions.append(Task.priority.set(priority))
+                actions.append(Task.priority.set(priority.value))
             if start_date:
                 actions.append(Task.start_date.set(start_date))
             if end_date:
@@ -238,9 +245,41 @@ class UpdateTask(graphene.Mutation):
             return UpdateTask(task=task)
         except Task.DoesNotExist:
             raise Exception(f"Task {id} does not exist.")
-        except UpdateError as e:
-            raise Exception(f"Error updating task: {e}")
 
+class MoveTask(graphene.Mutation):
+    class Arguments:
+        task_id = String(required=True)
+        source_column_id = String(required=True)
+        target_column_id = String(required=True)
+
+    success = Boolean()
+    message = String()
+    task = Field(lambda: TaskType)
+
+    def mutate(self, info, task_id, source_column_id, target_column_id):
+        try:
+            task = Task.get(f"COLUMN#{source_column_id}", f"TASK#{task_id}")
+            
+            new_task = Task(
+                PK=f"COLUMN#{target_column_id}",
+                SK=task.SK,
+                title=task.title,
+                description=task.description,
+                priority=task.priority,
+                start_date=task.start_date,
+                end_date=task.end_date,
+                tags=task.tags,
+                create_date=task.create_date,
+                update_date=task.update_date
+            )
+            new_task.save()
+
+            task.delete()
+            
+            return MoveTask(success=True, message=f"Task {task_id} moved successfully.", task=new_task)
+        except Task.DoesNotExist:
+            return MoveTask(success=False, message=f"Task {task_id} does not exist.")
+        
 class DeleteTask(graphene.Mutation):
     class Arguments:
         id = String(required=True)
@@ -296,6 +335,7 @@ class Mutation(ObjectType):
     delete_column = DeleteColumn.Field()
     update_task = UpdateTask.Field()
     delete_task = DeleteTask.Field()
+    move_task = MoveTask.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

@@ -7,10 +7,10 @@ interface CardTaskProps {
   id: string,
   title: string;
   index: number;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onEdit: () => void
 }
 
-const TaskCard: React.FC<CardTaskProps> = ({ id,title, index,onChange }) => {
+const TaskCard: React.FC<CardTaskProps> = ({ id,title, index, onEdit }) => {
   const [{ isDragging }, drag ] = useDrag({
     type: ItemType,
     item: { id, index },
@@ -20,16 +20,12 @@ const TaskCard: React.FC<CardTaskProps> = ({ id,title, index,onChange }) => {
   });
   return (
     <div 
+      onDoubleClick={onEdit}
       ref={drag as unknown as React.LegacyRef<HTMLDivElement>} 
       key={id} 
-      className={`w-full h-1/6 max-h-36 bg-white rounded border border-gray-300 border-l-8 border-l-blue-500 shadow my-4 p-6 ${isDragging ? 'opacity-50' : 'opacity-100'}`}>
-      <input
-        type='text'
-        value={title}
-        onChange={onChange}
-        readOnly
-        className='w-full bg-transparent focus:outline-none font-bold text-lg'
-      />
+      className={`w-full h-1/6 max-h-36 bg-white rounded border border-gray-300 border-l-8 border-l-rose-500 shadow my-4 p-6 ${isDragging ? 'opacity-50' : 'opacity-100'}`}>
+         
+      <h4 className='font-bold'>{title}</h4>
     </div>
   );
 };

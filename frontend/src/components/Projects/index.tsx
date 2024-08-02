@@ -15,8 +15,7 @@ const Projects: React.FC<CreateProjectProps> = ({initProjects}) => {
     const {data, handleCreateProject, handleDeleteProject, handleUpdateProject} = useProjects()
 
     useEffect(() => {
-        console.log(data)
-        if(data){
+       if(data){
             setProjects(data?.projects)
         }
     },[data])
