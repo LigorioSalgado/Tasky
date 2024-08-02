@@ -39,6 +39,12 @@ services:
       - "3000:3000"
     volumes:
       - ./frontend:/app
+    depends_on:
+      - backend
 
 volumes:
   dynamodb_data:
+
+networks:
+  default:
+    driver: bridge

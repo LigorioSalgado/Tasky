@@ -19,10 +19,6 @@ app.add_middleware(
 )
 
 
-
-
-
-
 app.add_route("/graphql", GraphQLApp(schema=schema, playground=True))
 
 if __name__ == "__main__":
