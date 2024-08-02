@@ -1,8 +1,7 @@
 from uuid import uuid4
 from  enum import Enum
 import graphene
-from graphene import ObjectType, String, List, Field, Int
-from graphene.types.uuid import UUID
+from graphene import ObjectType, String, List, Field, Int, Boolean
 from graphene.types.datetime import DateTime
 from models.ProjectModel import Project, Column, Task
 
@@ -70,16 +69,17 @@ class Query(ObjectType):
     project = Field(ProjectType, id=String(required=True))
 
     def resolve_projects(self,info):
-        projects = Project.scan(Project.PK.startswith('PROJECT#'))
+        projects = Project.scan(Project.SK.startswith('METADATA#'))
         return list(projects)
 
     def resolve_project(self,info, id):
         project = Project.get(f'PROJECT#{id}', f'METADATA#{id}')
         return project
-    
+
+
 class CreateProject(graphene.Mutation):
     class Arguments:
-        name = String(required = True)
+        name = String()
         description = String()
 
     project = Field(lambda: ProjectType)
@@ -97,6 +97,48 @@ class CreateProject(graphene.Mutation):
 
         return CreateProject(project=project)
 
+
+class UpdateProject(graphene.Mutation):
+    class Arguments:
+        id = String()
+        name = String()
+        description = String()
+
+    project = Field(lambda: ProjectType)
+
+    def mutate(root, info, id, name, description):
+        project = Project.get(f'PROJECT#{id}', f'METADATA#{id}')
+        actions = []
+        if name:
+            actions.append(Project.name.set(name))
+        if description:
+            actions.append(Project.description.set(description))
+        
+        project.update(actions=actions)
+        return UpdateProject(project=project)
+
+class DeleteProject(graphene.Mutation):
+    class Arguments:
+        id = String(required=True)
+
+    success = Boolean()
+
+    message = String()
+
+    def mutate(self, info, id):
+        try:
+            columns = Column.query(f"PROJECT#{id}", Column.SK.startswith("COLUMN#"))
+            for column in columns:
+                tasks = Task.query(f"COLUMN#{column.SK}", Task.SK.startswith("TASK#"))
+                for task in tasks:
+                    task.delete()
+                column.delete()            
+            project = Project.get(f"PROJECT#{id}", f"METADATA#{id}")
+            project.delete()
+            return DeleteProject(success=True, message=f"Project {id} deleted")
+        except Project.DoesNotExist:
+            return DeleteProject(success=False, message=f"Project {id} does not exists.")
+        
 class CreateColumn(graphene.Mutation):
     class Arguments:
         project_id = String(required=True)
@@ -129,7 +171,6 @@ class CreateTask(graphene.Mutation):
     
     task = Field(lambda: TaskType)
 
-
     def mutate(self, info, column_id, title, priority="LOW", description=None, start_date=None, end_date=None, tags=None):
             id = uuid4()
             task = Task(
@@ -145,10 +186,14 @@ class CreateTask(graphene.Mutation):
             task.save()
             return CreateTask(task=task)
 
+
+
 class Mutation(ObjectType):
     create_project = CreateProject.Field()
     create_column = CreateColumn.Field()
     create_task = CreateTask.Field()
+    update_project = UpdateProject.Field()
+    delete_project = DeleteProject.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
