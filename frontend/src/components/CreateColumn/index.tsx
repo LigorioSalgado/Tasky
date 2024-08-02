@@ -13,6 +13,7 @@ const CreateColumnModal: React.FC<CreateColumnModalProps> = ({ isOpen, onClose, 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     onSave(title,);
+    setTitle('')
     onClose();
   };
 

@@ -14,6 +14,8 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     onSave(title, description);
+    setTitle('')
+    setDescription('')
     onClose();
   };
 

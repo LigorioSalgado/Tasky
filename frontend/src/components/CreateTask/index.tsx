@@ -26,11 +26,23 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClose, onSa
   const [endDate, setEndDate] = useState<string>('');
   const [tags, setTags] = useState<string[]>([]);
 
+  const clearFields = () => {
+    setTitle('')
+    setDescription('')
+    setPriority('')
+    setStartDate('')
+    setEndDate('')
+    setTags([])
+  }
+
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSave({title, description, priority: stringToPriority(priority) , startDate, endDate, tags});
+    clearFields()
     onClose();
   };
+
+
 
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTags(e.target.value.split(',').map(tag => tag.trim()));
