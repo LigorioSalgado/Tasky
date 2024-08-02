@@ -1,6 +1,4 @@
-### README.md
-
-# Fullstack Project with React, Next.js, FastAPI, Graphene, and DynamoDB
+# Tasky
 
 ## Overview
 
