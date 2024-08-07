@@ -25,7 +25,7 @@ export const hexToRgb = (hex: string) => {
     return isColorDark(color) ? '#ffffff' : '#000000';
   };
 
-  export const stringToPriority = (priority: string): Priorities | null => {
+  export const stringToPriority = (priority: string): Priorities  => {
     switch (priority) {
       case 'LOW':
         return Priorities.Low;
@@ -36,7 +36,7 @@ export const hexToRgb = (hex: string) => {
       case 'URGENT':
         return Priorities.Urgent;
       default:
-        return null; // O manejar el caso de error apropiadamente
+        return Priorities.Low;
     }
   };
   

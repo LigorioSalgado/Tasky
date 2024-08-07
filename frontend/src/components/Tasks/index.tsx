@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ColumnType, TaskType } from '@/types';
 import { useProject } from '@/hooks/useProject';
+import { useRouter } from 'next/navigation'
 import Modal from '../commons/Modal';
 import CreateColumnModal from '../CreateColumn';
 import ColumnTask from '@/components/ColumnTask';
@@ -18,6 +19,7 @@ interface TaskProps {
 
 const Tasks: React.FC<TaskProps> = ({ initColumns, projectId }) => {
 
+  const router = useRouter()
   const [columns, setColumns] = useState<ColumnType[]>(initColumns || []);
   const [filteredColumns, setFilteredColumns] = useState<ColumnType[]>(columns);
   const [currentColumn, setCurrentColumn] = useState<ColumnType>({} as ColumnType);
@@ -62,35 +64,83 @@ const Tasks: React.FC<TaskProps> = ({ initColumns, projectId }) => {
     setFilteredColumns(filtered);
   };
 
+  const moveCard = (dragIndex: number, hoverIndex: number, sourceColumn: string, targetColumn: string) => {
+    console.log("🚀 ~ moveCard ~ dragIndex: number, hoverIndex: number, sourceColumn: string, targetColumn: strin:", dragIndex, hoverIndex, sourceColumn, targetColumn)
+    console.log(sourceColumn===targetColumn)
+    if (sourceColumn === targetColumn) {
+      const col = columns.find(c => c.id === sourceColumn)
+      console.log("🚀 ~ moveCard ~ col:", col)
+      const updatedItems = [...col.tasks];
+      console.log("🚀 ~ moveCard ~ updatedItems:", updatedItems)
+      const [movedItem] = updatedItems.splice(dragIndex, 1);
+      console.log("🚀 ~ moveCard ~ movedItem:", movedItem)
+      updatedItems.splice(hoverIndex, 0, movedItem);
+      console.log("🚀 ~ moveCard ~ updatedItems:", updatedItems)
+
+      const newColumns = columns.map( c => {
+        if(c.id === sourceColumn){
+          return {
+            ...c,
+            tasks: updatedItems
+          }
+        }
+        return c
+      })
+      setColumns(newColumns);
+      //(columnId, updatedItems);
+    } else {
+      const fromCol = columns.find(c => c.id === sourceColumn)
+      const toCol = columns.find(c => c.id === targetColumn)
+      const sourceItems = [...fromCol.tasks];
+      const targetItems = [...toCol.tasks];
+      const [movedItem] = sourceItems.splice(dragIndex, 1);
+      targetItems.splice(hoverIndex, 0, movedItem);
+      const newColumns = columns.map( c => {
+        if(c.id === sourceColumn){
+          return {
+            ...c,
+            tasks: sourceItems
+          }
+        }
+        if(c.id === targetColumn){
+          return {
+            ...c,
+            tasks: targetItems
+          }
+        }
+        return c
+      })
+      setColumns(newColumns)
+      handleMoveTask({ taskId: movedItem.id, sourceColumnId: sourceColumn, targetColumnId: targetColumn })
+    }
+
+  };
+
   const handleDrop = (columnId: string, item: TaskType) => {
-    const cardId = item.id;
-    const sourceColumn = columns.find((col) => col.tasks.some((task) => task.id === cardId));
+    moveCard(0,0,item.columnId,columnId)
+   
+    //;
+    //console.log(newColumns)
+  };
 
-    if (!sourceColumn || sourceColumn.id === columnId) return;
+  const reorder = (columnId: string, items: TaskType[]) => {
+    const column = columns.find((col) => col.id === columnId);
+    if (!column) return;
 
-    const sourceColumnIndex = columns.findIndex((col) => col.id === sourceColumn.id);
-    const targetColumnIndex = columns.findIndex((col) => col.id === columnId);
-
-    const card = sourceColumn.tasks.find((task) => task.id === cardId);
-    if (!card) return;
-
-    const newSourceTasks = sourceColumn.tasks.filter((task) => task.id !== cardId);
-    const newTargetTasks = [...columns[targetColumnIndex].tasks, card];
-
-    const newColumns = [...columns];
-    newColumns[sourceColumnIndex] = {
-      ...sourceColumn,
-      tasks: newSourceTasks,
-    };
-    newColumns[targetColumnIndex] = {
-      ...columns[targetColumnIndex],
-      tasks: newTargetTasks,
-    };
-
-    handleMoveTask({ taskId: item.id, sourceColumnId: sourceColumn.id, targetColumnId: columnId });
+    const newColumns = columns.map((col) => {
+      if (col.id === columnId) {
+        return {
+          ...col,
+          tasks: items,
+        };
+      }
+      return col;
+    });
+    console.log("New Columns: ",  newColumns)
     setColumns(newColumns);
   };
 
+  
   const addTask = (column: ColumnType) => {
     setTaskModal(true);
     setCurrentColumn(column);
@@ -142,6 +192,7 @@ const Tasks: React.FC<TaskProps> = ({ initColumns, projectId }) => {
             onUpdate={(title) => handleUpdateColumn(col.id, projectId, title)}
             onDelete={() => deleteColumn(col)}
             onEditTask={onEditTask}
+            reorder={moveCard}
           />
         ))}
 

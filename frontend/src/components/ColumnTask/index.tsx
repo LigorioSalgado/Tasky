@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/solid'
 import { useDrop } from 'react-dnd';
 import { TaskType } from '@/types';
@@ -15,15 +15,18 @@ interface ColumnTaskProps {
     onAddTask: (columnId: string) => void;
     onDelete: () => void;
     onEditTask: (task:TaskType) => void;
+    reorder: () => void;
 }
 
-const ColumnTask: React.FC<ColumnTaskProps> = ({ columnId, title:initTitle, items = [], onDrop,onUpdate ,onAddTask, onDelete, onEditTask }) => {
+const ColumnTask: React.FC<ColumnTaskProps> = ({ columnId, title:initTitle, items:initItems = [], onDrop,onUpdate ,onAddTask, onDelete, onEditTask, reorder }) => {
+  const [items, setItems] = useState(initItems)
   const  [title, setTitle] = useState(initTitle)
   const [isTitleSet, setIsTitle] = useState(false)
     const [ {  isOverCurrent } , drop] = useDrop({
         accept: ItemType,
         drop: (item) => {
-          onDrop(item);
+          console.log(item)
+           onDrop(item);
         },
         collect: (monitor) => ({
             isOverCurrent: monitor.isOver(),
@@ -35,6 +38,12 @@ const ColumnTask: React.FC<ColumnTaskProps> = ({ columnId, title:initTitle, item
     onUpdate(title)
     setIsTitle(false)
    }
+
+  useEffect(() => {
+    if(initItems){
+      setItems(initItems)
+    }
+  }, [initItems])
 
   return (
     <div ref={drop as unknown as React.LegacyRef<HTMLDivElement>} className={`bg-white w-64  p-4 ${isOverCurrent && 'shadow-2xl bg-rose-200'} rounded-lg border-2 border-slate-300 flex-shrink-0 min-w-[300px] `}>
@@ -55,7 +64,7 @@ const ColumnTask: React.FC<ColumnTaskProps> = ({ columnId, title:initTitle, item
       </div>
 
         {
-            items.map( (task, index) => (<TaskCard key={task.id} title={task.title} id={task.id} index={index} onEdit={() => onEditTask(task)} />))
+            items.map( (task, index) => (<TaskCard key={task.id} columnId={columnId} title={task.title} id={task.id} index={index} onEdit={() => onEditTask(task) } moveCard={reorder} />))
         }
       
         
